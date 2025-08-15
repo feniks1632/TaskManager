@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'django_extensions',  # Удобные команды
 
     # Локальные приложения
-    'tasks',
+    'channels',
+    'tasks.apps.TasksConfig',
     'notifications',
     'analytics',
     'core',
@@ -61,6 +62,21 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = 'taskflow.wsgi.application'
+ASGI_APPLICATION = 'taskflow.asgi.application'
+
+# Redis для Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],  # если в Docker
+            # "hosts": [('127.0.0.1', 6379)],  # если локально
+        },
+    },
+}
+
+# Убедимся, что WSGI тоже есть
 WSGI_APPLICATION = 'taskflow.wsgi.application'
 
 # База данных — PostgreSQL
@@ -100,3 +116,32 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Media (если будем загружать файлы)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
