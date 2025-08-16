@@ -5,7 +5,7 @@ from decouple import config
 
 
 # Базовые пути
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Безопасность
 SECRET_KEY = config('SECRET_KEY', default='your-default-secret-key')
@@ -22,13 +22,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tasks.apps.TasksConfig',
 
     # Third-party
     'django_extensions',  # Удобные команды
 
     # Локальные приложения
     'channels',
-    'tasks.apps.TasksConfig',
     'notifications',
     'analytics',
     'core',
@@ -49,7 +49,7 @@ ROOT_URLCONF = 'taskflow.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'core', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,8 +76,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Убедимся, что WSGI тоже есть
-WSGI_APPLICATION = 'taskflow.wsgi.application'
 
 # База данных — PostgreSQL
 DATABASES = {
@@ -145,3 +143,10 @@ LOGGING = {
         },
     },
 }
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'tasks:list'
+LOGOUT_REDIRECT_URL = 'login'
+
+print("🔧 BASE_DIR:", BASE_DIR)
+print("🔧 Ожидаемый путь к шаблонам:", os.path.join(BASE_DIR, 'templates'))

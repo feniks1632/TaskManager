@@ -2,6 +2,7 @@
 from .models import Task
 from notifications.services import NotificationService
 
+
 class TaskService:
     """
     Сервис для управления задачами — вся бизнес-логика здесь
