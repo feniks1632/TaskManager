@@ -10,6 +10,7 @@ class Task(models.Model):
         ('in_progress', 'In progress'),
         ('done', 'Done')
     ]
+    
     PRIORITY_CHOISES = [
         ('low', 'Low'),
         ('medium', 'Medium'),
@@ -24,12 +25,14 @@ class Task(models.Model):
         choices=STATUS_CHOISES,
         default='todo',
     )
+
     priority = models.CharField(
         "Приоритет",
         max_length=10,
         choices=PRIORITY_CHOISES,
         default='medium'
     )
+
     due_date = models.DateTimeField("Срок выполнения", null=True, blank=True)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
