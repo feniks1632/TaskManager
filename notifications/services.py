@@ -4,10 +4,11 @@ from core.singleton import NotificationManager
 
 logger = logging.getLogger(__name__)
 
+
 class NotificationService:
     """
-    Сервис для отправки уведомлений разными способами.
-    Использует NotificationManager (Singleton) и фабрики (Factory Method).
+    Сервис для отправки уведомлений через разные каналы.
+    Использует NotificationManager (Singleton) и паттерн Factory Method.
     """
 
     def __init__(self):
@@ -15,14 +16,14 @@ class NotificationService:
 
     def send_task_assigned(self, task):
         """
-        Уведомляем пользователя, когда ему назначают задачу.
+        Отправляет уведомление исполнителю о назначении задачи.
         """
         if not task.assignee:
             return
 
         message = f"Вам назначена задача: «{task.title}»"
 
-        # Email
+        # Отправка email
         try:
             email_notif = self.manager.get_notification("email")
             email_notif.send(task.assignee.email, message)
@@ -30,7 +31,7 @@ class NotificationService:
         except Exception as e:
             logger.error(f"Failed to send email to {task.assignee.email}: {e}")
 
-        # WebSocket (пока заглушка)
+        # Отправка WebSocket-уведомления
         try:
             ws_notif = self.manager.get_notification("websocket")
             ws_notif.send(task.assignee.id, message)
@@ -40,13 +41,14 @@ class NotificationService:
 
     def send_task_overdue(self, task):
         """
-        Напоминание о просроченной задаче.
+        Отправляет уведомление о просроченной задаче.
         """
         if not task.assignee:
             return
 
         message = f"⚠️ Задача просрочена: «{task.title}»"
 
+        # Отправка email
         try:
             email_notif = self.manager.get_notification("email")
             email_notif.send(task.assignee.email, message)
@@ -54,9 +56,10 @@ class NotificationService:
         except Exception as e:
             logger.error(f"Failed to send overdue email to {task.assignee.email}: {e}")
 
-        # WebSocket — опционально
+        # Отправка WebSocket (опционально)
         try:
             ws_notif = self.manager.get_notification("websocket")
             ws_notif.send(task.assignee.id, message)
+            logger.info(f"WebSocket overdue notification sent to user {task.assignee.id}")
         except Exception as e:
             logger.warning(f"WebSocket failed for overdue task {task.id}: {e}")

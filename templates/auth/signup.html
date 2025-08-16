@@ -28,6 +28,14 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email *</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
                     <label for="{{ form.password1.id_for_label }}" class="form-label">Пароль *</label>
                     {{ form.password1 }}
                     <small class="text-muted">
