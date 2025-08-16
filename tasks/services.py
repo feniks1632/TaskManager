@@ -1,6 +1,8 @@
 # tasks/services.py
 from .models import Task
 from notifications.services import NotificationService
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 class TaskService:
@@ -9,6 +11,7 @@ class TaskService:
     """
     def __init__(self):
         self.notification_service = NotificationService()
+        self.channel_layer = get_channel_layer() # Для рассылки
 
     def create_task(self, data: dict, created_by):
         """
@@ -23,6 +26,24 @@ class TaskService:
         # Если назначена — уведомляем
         if assignee:
             self.notification_service.send_task_assigned(task)
+        
+        if self.channel_layer:
+            async_to_sync(self.channel_layer.group_send)(
+                "tasks_list",  # группа для всех на странице задач
+                {
+                    "type": "task_update",
+                    "action": "created",
+                    "task": {
+                        "id": task.id,
+                        "title": task.title,
+                        "status": task.get_status_display(),
+                        "priority": task.get_priority_display(),
+                        "due_date": task.due_date.isoformat() if task.due_date else None,
+                        "assignee": task.assignee.username if task.assignee else "",
+                        "is_overdue": task.is_overdue(),
+                    }
+                }
+            )
         return task
 
     def update_task(self, task: Task, data: dict):

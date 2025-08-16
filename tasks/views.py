@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 from .models import Task
-from .forms import TaskForm
+from .forms import TaskForm, SignUpForm
 from .services import TaskService
 
 
@@ -106,19 +106,14 @@ def signup_view(request):
         return redirect('tasks:list')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()  # пароль автоматически хешируется
-            username = form.cleaned_data.get('username')
-
-            # Автоматический вход после регистрации
+            user = form.save()
             login(request, user)
-            messages.success(request, f"Добро пожаловать, {username}! Аккаунт успешно создан.")
-
+            messages.success(request, f"Добро пожаловать, {user.username}! Аккаунт создан.")
             return redirect('tasks:list')
         else:
-            messages.error(request, "Пожалуйста, исправьте ошибки ниже.")
+            messages.error(request, "Исправьте ошибки ниже.")
     else:
-        form = UserCreationForm()
-
+        form = SignUpForm()
     return render(request, 'auth/signup.html', {'form': form})

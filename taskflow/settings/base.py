@@ -16,6 +16,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lamb
 
 # Приложения
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,7 +71,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('redis', 6379)],  # если в Docker
+            "hosts": [('127.0.0.1', 6379)],  # если в Docker
             # "hosts": [('127.0.0.1', 6379)],  # если локально
         },
     },
@@ -148,5 +149,3 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'tasks:list'
 LOGOUT_REDIRECT_URL = 'login'
 
-print("🔧 BASE_DIR:", BASE_DIR)
-print("🔧 Ожидаемый путь к шаблонам:", os.path.join(BASE_DIR, 'templates'))
