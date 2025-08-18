@@ -6,13 +6,17 @@ from notifications.factories import (
     WebSocketNotificationFactory,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TasksConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'tasks'
 
     def ready(self):
-        print("✅ Запуск TasksConfig: регистрация фабрик уведомлений")
+        import tasks.celery_tasks
+        logger.info("✅ Запуск TasksConfig: регистрация фабрик уведомлений")
         # Регистрируем фабрики при старте приложения
         nm = NotificationManager()
         nm.register_factory("email", EmailNotificationFactory())

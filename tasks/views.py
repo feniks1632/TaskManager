@@ -39,6 +39,10 @@ def task_update(request, pk):
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task)
         if form.is_valid():
+            new_status = form.cleaned_data.get('status')
+            if new_status == 'todo'and task.status != 'todo':
+                task.notified_overdue = False
+                task.notified_soon = False
             service = TaskService()
             service.update_task(task, form.cleaned_data)
             messages.success(request, "Задача обновлена!")

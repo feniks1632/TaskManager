@@ -1,10 +1,17 @@
-# FROM python:3.11-slim
+# Dockerfile
+FROM python:3.11-slim
 
-# WORKDIR /app
 
-# COPY requirements.txt .
-# RUN pip install -r requirements.txt
+WORKDIR /app
 
-# COPY . .
+# Установка зависимостей
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# CMD ["gunicorn", "--bind", "0.0.0.0:8080", "taskflow.wsgi:application"]
+# Копируем код
+COPY . .
+
+RUN python manage.py collectstatic --noinput
+
+# Команда запуска ASGI-сервера
+CMD ["daphne", "taskflow.asgi:application", "-b", "0.0.0.0", "-p", "8080"]

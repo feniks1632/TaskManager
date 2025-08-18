@@ -21,16 +21,62 @@ services:
       - "6379:6379"
     command: ["redis-server", "--loglevel", "notice"]
 
-  # web:
-  #   build: .
-  #   command: python manage.py runserver 0.0.0.0:8080  # ✅ исправлено на 8000
-  #   volumes:
-  #     - .:/app
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - db
-  #     - redis
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_taskflow
+    environment:
+      RABBITMQ_DEFAULT_USER: taskflow
+      RABBITMQ_DEFAULT_PASS: taskflow
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  web:
+    build: .
+    command: >
+      sh -c "
+      python manage.py migrate --noinput &&
+      daphne taskflow.asgi:application -b 0.0.0.0 -p 8080
+      "
+    volumes:
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      - web
+
+  celery_worker:
+    build: .
+    command: celery -A taskflow worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  celery_beat:
+    build: .
+    command: celery -A taskflow beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    
 
 volumes:
   postgres_data:
