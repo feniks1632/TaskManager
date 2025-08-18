@@ -53,6 +53,9 @@ class Task(models.Model):
         verbose_name='Создал'
     )
 
+    notified_soon = models.BooleanField(default=False)
+    notified_overdue = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Задача',
         verbose_name_plural = 'Задачи',

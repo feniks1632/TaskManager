@@ -71,7 +71,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],  # если в Docker
+            "hosts": [('redis', 6379)],  # если в Docker
             # "hosts": [('127.0.0.1', 6379)],  # если локально
         },
     },
@@ -100,13 +100,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Локализация
 LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'Asia/Yekaterinburg'
 USE_I18N = True
 USE_TZ = True
 
 # Статика
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core', 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Дефолтный авто-филд
@@ -149,3 +149,19 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'tasks:list'
 LOGOUT_REDIRECT_URL = 'login'
 
+# Настройки Celery
+CELERY_BROKER_URL = 'amqp://taskflow:taskflow@rabbitmq:5672//'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Yekaterinburg'
+
+# Периодические задачи (Celery Beat)
+CELERY_BEAT_SCHEDULE = {
+    'send-overdue-task-reminders': {
+        'task': 'tasks.celery_tasks.check_overdue_tasks',
+        'schedule': 120.0,
+    },
+}
