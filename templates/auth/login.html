@@ -1,54 +1,68 @@
-<!-- templates/auth/login.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center py-5">
     <div class="col-md-6 col-lg-4">
-        <div class="card p-4 shadow-sm">
-            <h2 class="text-center mb-4">🔐 Вход</h2>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label">Имя пользователя</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="text-danger">{{ form.username.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    <label for="{{ form.password.id_for_label }}" class="form-label">Пароль</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="text-danger">{{ form.password.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">Войти</button>
-                </div>
-            </form>
-
-            <div class="text-center mt-3">
-                <small class="text-muted">
-                    Демо: <strong>admin</strong> / <strong>admin</strong>
-                </small>
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-gradient text-white text-center py-4">
+                <h2 class="mb-1">🔐 Вход</h2>
+                <p class="mb-0 opacity-75">Войдите в свой аккаунт</p>
             </div>
-            <div class="text-center mt-3">
-                <small>
-                    Нет аккаунта? <a href="{% url 'signup' %}">Зарегистрироваться</a>
-                </small>
+
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-user me-1"></i> Имя пользователя
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-lock me-1"></i> Пароль
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                            <i class="fas fa-sign-in-alt me-1"></i> Войти
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Нет аккаунта? 
+                        <a href="{% url 'signup' %}" class="text-decoration-none fw-bold text-primary">
+                            Зарегистрироваться
+                        </a>
+                    </small>
+                </div>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Powered by: feniks1632
+                    </small>
+                </div>
             </div>
         </div>
     </div>

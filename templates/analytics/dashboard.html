@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>📊 Аналитика задач</h2>
+        <a href="{% url 'tasks:list' %}" class="btn btn-outline-primary btn-sm">
+            ← Назад к задачам
+        </a>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Всего</h6>
+                <h3>{{ stats.total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Выполнено</h6>
+                <h3>{{ stats.completed }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6>В работе</h6>
+                <h3>{{ stats.in_progress }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Просрочено</h6>
+                <h3>{{ stats.overdue }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- График -->
+<div class="card p-4">
+    <h4>📅 Задачи за последнюю неделю</h4>
+    <canvas id="weeklyChart" height="100"></canvas>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Анализ данных -->
+    <script>
+        const labels = JSON.parse('{{ weekly_labels|safe }}');
+        const data = JSON.parse('{{ weekly_data|safe }}');
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Создано задач',
+                        data: data,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+    <!-- Подключаем основной JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+{% endblock %}

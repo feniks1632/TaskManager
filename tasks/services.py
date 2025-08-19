@@ -1,8 +1,8 @@
-# tasks/services.py
-from .models import Task
-from notifications.services import NotificationService
-from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+from notifications.services import NotificationService
+from .models import Task
 
 
 class TaskService:
@@ -34,10 +34,10 @@ class TaskService:
                     "type": "task_update",
                     "action": "created",
                     "task": {
-                        "id": task.id,
+                        "id": task.id, # type: ignore
                         "title": task.title,
-                        "status": task.get_status_display(),
-                        "priority": task.get_priority_display(),
+                        "status": task.get_status_display(), # type: ignore
+                        "priority": task.get_priority_display(), # type: ignore
                         "due_date": task.due_date.isoformat() if task.due_date else None,
                         "assignee": task.assignee.username if task.assignee else "",
                         "is_overdue": task.is_overdue(),

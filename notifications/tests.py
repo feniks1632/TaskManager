@@ -1,18 +1,15 @@
-# notifications/tests.py
-from django.test import TestCase
 from unittest.mock import patch
 
-# Наши компоненты
+from django.contrib.auth.models import User
+from django.test import TestCase
+
 from core.singleton import NotificationManager
-from notifications.factories import (
-    EmailNotificationFactory,
-    WebSocketNotificationFactory,
-    EmailNotification,
-    WebSocketNotification,
-)
+from notifications.factories import (EmailNotification,
+                                     EmailNotificationFactory,
+                                     WebSocketNotification,
+                                     WebSocketNotificationFactory)
 from notifications.services import NotificationService
 from tasks.models import Task
-from django.contrib.auth.models import User
 
 
 class NotificationPatternsTest(TestCase):
@@ -31,7 +28,7 @@ class NotificationPatternsTest(TestCase):
             priority='high'
         )
 
-    # --- Тесты для Singleton ---
+    # Тесты синглтона
     def test_notification_manager_is_singleton(self):
         """Проверяем, что NotificationManager — действительно Singleton"""
         nm1 = NotificationManager()
@@ -42,13 +39,11 @@ class NotificationPatternsTest(TestCase):
         """Проверяем, что состояние (factories) общее"""
         nm1 = NotificationManager()
         nm2 = NotificationManager()
-
         nm1.register_factory("email", EmailNotificationFactory())
-
         self.assertIn("email", nm2.factories)
         self.assertEqual(nm1.factories, nm2.factories)
 
-    # --- Тесты для Factory Method ---
+    # Тесты для фабрик
     def test_email_factory_creates_email_notification(self):
         """Фабрика Email должна создавать EmailNotification"""
         factory = EmailNotificationFactory()
@@ -66,10 +61,8 @@ class NotificationPatternsTest(TestCase):
         nm = NotificationManager()
         nm.register_factory("email", EmailNotificationFactory())
         nm.register_factory("websocket", WebSocketNotificationFactory())
-
         email_notif = nm.get_notification("email")
         ws_notif = nm.get_notification("websocket")
-
         self.assertIsInstance(email_notif, EmailNotification)
         self.assertIsInstance(ws_notif, WebSocketNotification)
 
@@ -80,13 +73,12 @@ class NotificationPatternsTest(TestCase):
             nm.get_notification("sms")
         self.assertIn("Фабрика не найдена", str(context.exception))
 
-    # --- Тесты для NotificationService ---
+    # Тесты для сервиса уведомлений
     @patch('notifications.factories.EmailNotification.send')
     def test_notification_service_sends_email_on_task_assignment(self, mock_send):
         """Проверяем, что при назначении задачи отправляется email"""
         service = NotificationService()
         service.send_task_assigned(self.task)
-
         mock_send.assert_called_once()
         args, kwargs = mock_send.call_args
         recipient, message = args
@@ -98,11 +90,10 @@ class NotificationPatternsTest(TestCase):
         """Проверяем, что отправляется WebSocket-уведомление"""
         service = NotificationService()
         service.send_task_assigned(self.task)
-
         mock_send.assert_called_once()
         args, kwargs = mock_send.call_args
         user_id, message = args
-        self.assertEqual(user_id, self.user.id)
+        self.assertEqual(user_id, self.user.id) # type: ignore
         self.assertIn("Тестовая задача", message)
 
     @patch('notifications.factories.EmailNotification.send')
@@ -121,7 +112,6 @@ class NotificationPatternsTest(TestCase):
         """Если нет assignee — сервис не должен падать"""
         self.task.assignee = None
         self.task.save()
-
         service = NotificationService()
 
         # Не должно быть исключений
@@ -129,3 +119,10 @@ class NotificationPatternsTest(TestCase):
         service.send_task_overdue(self.task)
 
         # Просто не отправляем
+
+    def test_email_factory_returns_same_instance(self):
+        """Фабрика должна возвращать один и тот же экземпляр при повторных вызовах"""
+        factory = EmailNotificationFactory()
+        notif1 = factory.create_notification()
+        notif2 = factory.create_notification()
+        self.assertIs(notif1, notif2)

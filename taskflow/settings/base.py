@@ -1,8 +1,5 @@
-# taskflow/settings/base.py
 import os
 from decouple import config
-
-
 
 # Базовые пути
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,8 +21,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tasks.apps.TasksConfig',
-
-    # Third-party
     'django_extensions',  # Удобные команды
 
     # Локальные приложения
@@ -99,10 +94,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Локализация
-LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Asia/Yekaterinburg'
-USE_I18N = True
-USE_TZ = True
+LANGUAGE_CODE = config('LANGUAGE_CODE', default='ru-ru')
+TIME_ZONE = config('TIME_ZONE', default='Asia/Yekaterinburg')
+USE_I18N = config('USE_I18N', default=True, cast=bool)
+USE_TZ = config('USE_TZ', default=True, cast=bool)
 
 # Статика
 STATIC_URL = '/static/'
@@ -123,7 +118,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-
+# Логирование
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -145,6 +140,7 @@ LOGGING = {
     },
 }
 
+# Базовые урлы
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'tasks:list'
 LOGOUT_REDIRECT_URL = 'login'
@@ -156,7 +152,7 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Asia/Yekaterinburg'
+CELERY_TIMEZONE = config('CELERY_TIMEZONE', default='')
 
 # Периодические задачи (Celery Beat)
 CELERY_BEAT_SCHEDULE = {
