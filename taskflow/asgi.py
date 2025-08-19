@@ -1,9 +1,10 @@
-# taskflow/asgi.py
 import os
-from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
+
 from channels.auth import AuthMiddlewareStack
-import tasks.routing  # ← импортируем
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.core.asgi import get_asgi_application
+
+import tasks.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'taskflow.settings.base')
 
@@ -11,7 +12,7 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            tasks.routing.websocket_urlpatterns  # ← используем маршруты
+            tasks.routing.websocket_urlpatterns  # используем маршруты
         )
     ),
 })

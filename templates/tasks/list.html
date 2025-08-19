@@ -1,16 +1,22 @@
+<!-- templates/tasks/list.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Мои задачи</h2>
+        <div class="d-flex align-items-center">
+            <div class="me-3 p-2 bg-success bg-opacity-10 rounded">
+                <i class="fas fa-tasks text-success"></i>
+            </div>
+            <h2 class="mb-0">Мои задачи</h2>
+        </div>
         <a href="{% url 'tasks:create' %}" class="btn btn-success btn-lg">
-            + Новая задача
+            <i class="fas fa-plus-circle me-1"></i> Новая задача
         </a>
     </div>
 
     {% if tasks %}
-        <table class="table table-hover">
+        <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
                     <th>Название</th>
@@ -46,143 +52,28 @@
                         {% if task.due_date %}
                             {{ task.due_date|date:"d.m.Y H:i" }}
                             {% if task.is_overdue %}
-                                <span class="text-danger ms-2">⚠️</span>
+                                <span class="text-danger ms-2" title="Просрочено">⚠️</span>
                             {% endif %}
                         {% else %}
                             —
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'tasks:update' task.pk %}" class="btn btn-sm btn-primary">Редакт.</a>
-                        <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                        <a href="{% url 'tasks:update' task.pk %}" class="btn btn-sm btn-outline-primary">Редакт.</a>
+                        <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <div class="text-center text-muted">
-            <p class="lead">Нет задач</p>
-            <a href="{% url 'tasks:create' %}" class="btn btn-outline-primary">Создать первую</a>
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-inbox fa-2x mb-3 text-secondary"></i>
+            <p class="lead mb-3">Нет задач</p>
+            <a href="{% url 'tasks:create' %}" class="btn btn-outline-primary">
+                <i class="fas fa-plus-circle me-1"></i> Создать первую
+            </a>
         </div>
     {% endif %}
 </div>
-
-<!-- WebSocket: динамическое обновление списка -->
-<script>
-const userId = {{ user.id|default:"null" }};
-const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-const wsPath = `${wsScheme}://${window.location.host}/ws/notifications/`;
-let socket = null;
-
-// Подключение к WebSocket
-function connectWebSocket() {
-    socket = new WebSocket(wsPath);
-
-    socket.onopen = () => console.log("✅ WebSocket подключён");
-
-    socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-
-        if (data.type === "task_update") {
-            const task = data.task;
-            const tbody = document.getElementById("tasks-table-body");
-
-            if (data.action === "created") {
-                addTaskToList(task);
-            } else if (data.action === "deleted") {
-                removeTaskFromList(task.id);
-            } else if (data.action === "updated") {
-                updateTaskInList(task);
-            }
-        }
-
-        if (data.type === "notification") {
-            showNotification(data.message);
-        }
-    };
-
-    socket.onclose = () => {
-        console.log("❌ WebSocket закрыт, переподключение...");
-        setTimeout(connectWebSocket, 5000);
-    };
-
-    socket.onerror = (e) => console.error("WebSocket ошибка:", e);
-}
-
-// Добавить задачу в начало таблицы
-function addTaskToList(task) {
-    const tbody = document.getElementById("tasks-table-body");
-    const row = document.createElement("tr");
-    row.dataset.taskId = task.id;
-
-    row.innerHTML = `
-        <td>${task.title}</td>
-        <td><span class="badge bg-secondary">${task.status}</span></td>
-        <td><span class="badge bg-light text-dark border">${task.priority}</span></td>
-        <td>${task.due_date ? new Date(task.due_date).toLocaleString() : "—"}</td>
-        <td>
-            <a href="/${task.id}/update" class="btn btn-sm btn-primary">Редакт.</a>
-            <a href="/${task.id}/delete" class="btn btn-sm btn-danger">Удалить</a>
-        </td>
-    `;
-
-    tbody.prepend(row);
-    // Убираем сообщение "Нет задач", если оно есть
-    const noTasks = document.querySelector('.text-center.text-muted');
-    if (noTasks) noTasks.remove();
-}
-
-// Удалить задачу из списка
-function removeTaskFromList(taskId) {
-    const row = document.querySelector(`tr[data-task-id="${taskId}"]`);
-    if (row) row.remove();
-
-    // Если список пуст — показать "Нет задач"
-    const tbody = document.getElementById("tasks-table-body");
-    if (tbody.children.length === 0) {
-        tbody.innerHTML = '';
-        const container = document.querySelector('.card.p-4');
-        const noTasks = document.createElement('div');
-        noTasks.className = 'text-center text-muted';
-        noTasks.innerHTML = `
-            <p class="lead">Нет задач</p>
-            <a href="{% url 'tasks:create' %}" class="btn btn-outline-primary">Создать первую</a>
-        `;
-        container.appendChild(noTasks);
-    }
-}
-
-// Обновить задачу в списке
-function updateTaskInList(task) {
-    const row = document.querySelector(`tr[data-task-id="${task.id}"]`);
-    if (!row) return;
-
-    row.querySelector('td:nth-child(1)').textContent = task.title;
-    row.querySelector('td:nth-child(2) .badge').textContent = task.status;
-    row.querySelector('td:nth-child(3) .badge').textContent = task.priority;
-    row.querySelector('td:nth-child(4)').textContent = task.due_date
-        ? new Date(task.due_date).toLocaleString()
-        : "—";
-}
-
-// Показ уведомления
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'alert alert-info alert-dismissible fade show mt-3';
-    notification.innerHTML = `
-        <strong>🔔</strong> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.prepend(notification);
-    setTimeout(() => notification.remove(), 6000);
-}
-
-// Запуск WebSocket, если пользователь авторизован
-if (userId) {
-    connectWebSocket();
-}
-</script>
-</body>
-</html>
 {% endblock %}

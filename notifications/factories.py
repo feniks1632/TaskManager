@@ -1,23 +1,25 @@
-# notifications/factories.py
-from abc import ABC, abstractmethod
-from django.core.mail import send_mail
-from django.conf import settings
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import json
-from django.utils import timezone
 import logging
+from abc import ABC, abstractmethod
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.conf import settings
+from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
 
-# ------ Продукт ------
+
+# Объект
 class Notification(ABC):
     @abstractmethod
     def send(self, recipient, message: str):
         pass
 
-# ------ Конкретные продукты ------
+
+# Конкретные объекты
 class EmailNotification(Notification):
+    __slots__ = ()
+
     def send(self, recipient, message: str):
         try:
             send_mail(
@@ -28,42 +30,62 @@ class EmailNotification(Notification):
                 recipient_list=[recipient],
                 fail_silently=False,
             )
-            logger.info(f"✅ Email отправлен на {recipient}")
+            logger.info(f"Email отправлен на {recipient}")
         except Exception as e:
-            logger.error(f"❌ Ошибка отправки email на {recipient}: {e}")
+            logger.error(f"Ошибка отправки email на {recipient}: {e}")
+
+    def __str__(self):
+        return "EmailNotification"
+
 
 class WebSocketNotification(Notification):
-    def send(self, recipient, message: str):
-        """
-        recipient — это ID пользователя
-        """
-        try:
-            channel_layer = get_channel_layer()
-            if channel_layer is None:
-                logger.warning("Channel layer не настроен. Проверь ASGI и настройки.")
-                return
+    __slots__ = ('channel_layer',)
 
-            async_to_sync(channel_layer.group_send)(
+    def __init__(self):
+        self.channel_layer = get_channel_layer()
+        if self.channel_layer is None:
+            logger.warning("Channel layer не настроен. Проверь ASGI и настройки.")
+
+    def send(self, recipient, message: str):
+        if self.channel_layer is None:
+            return
+
+        try:
+            async_to_sync(self.channel_layer.group_send)(
                 f"user_{recipient}",
                 {
                     "type": "send_notification",
                     "message": message,
                 }
             )
-            logger.info(f"🌐 WebSocket: отправлено пользователю {recipient}")
+            logger.info(f"WebSocket: отправлено пользователю {recipient}")
         except Exception as e:
-            logger.error(f"❌ Ошибка отправки WebSocket-уведомления пользователю {recipient}: {e}")
+            logger.error(f"Ошибка отправки WebSocket-уведомления: {e}")
 
-# ------ Фабрики ------
+    def __str__(self):
+        return "WebSocketNotification"
+
+
+# Фабрики
 class NotificationFactory(ABC):
     @abstractmethod
     def create_notification(self) -> Notification:
         pass
 
+
 class EmailNotificationFactory(NotificationFactory):
+    _instance = None
+
     def create_notification(self) -> Notification:
-        return EmailNotification()
+        if self._instance is None:
+            self._instance = EmailNotification()
+        return self._instance
+
 
 class WebSocketNotificationFactory(NotificationFactory):
+    _instance = None
+
     def create_notification(self) -> Notification:
-        return WebSocketNotification()
+        if self._instance is None:
+            self._instance = WebSocketNotification()
+        return self._instance

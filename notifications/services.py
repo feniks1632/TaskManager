@@ -1,5 +1,5 @@
-# notifications/services.py
 import logging
+
 from core.singleton import NotificationManager
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class NotificationService:
         if not task.assignee:
             return
 
-        message = f"⚠️ Задача просрочена: «{task.title}»"
+        message = f"Задача просрочена: «{task.title}»"
 
         # Отправка email
         try:
@@ -56,7 +56,7 @@ class NotificationService:
         except Exception as e:
             logger.error(f"Failed to send overdue email to {task.assignee.email}: {e}")
 
-        # Отправка WebSocket (опционально)
+        # Отправка WebSocket
         try:
             ws_notif = self.manager.get_notification("websocket")
             ws_notif.send(task.assignee.id, message)

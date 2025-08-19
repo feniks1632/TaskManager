@@ -1,14 +1,14 @@
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
+from .forms import SignUpForm, TaskForm
 from .models import Task
-from .forms import TaskForm, SignUpForm
 from .services import TaskService
 
 
@@ -59,7 +59,7 @@ def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == 'POST':
         task.delete()
-        messages.success(request, "Задача {task.title} Удалена")
+        messages.success(request, f"Задача {task.title} Удалена")
         return redirect('tasks:list')
     return render(request, 'tasks/confirm_delete.html', {'task': task})
 
@@ -104,7 +104,7 @@ def logout_view(request):
 @require_http_methods(["GET", "POST"])
 def signup_view(request):
     """
-    Страница регистрации нового пользователя
+    Страница регистраци пользователя
     """
     if request.user.is_authenticated:
         return redirect('tasks:list')
